@@ -228,7 +228,7 @@ public class URStatusUI extends JFrame {
                     socketClient.setPort(SocketPort.UR_REALTIME30003_PORT);
                 }
                 socketClient.GetConnect();
-                log.info("connection to ur(30003) is " + socketClient.getIsDone());
+                log.info("connection to ur(30003) status is " + socketClient.getIsDone());
                 if (StringMatch.matchIp4Address(urRobotIp.getText(), "([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}")
                         && socketClient.getIsDone()) {
                     ActionListener taskPerformer = new ActionListener() {
@@ -247,7 +247,7 @@ public class URStatusUI extends JFrame {
                     timer = new Timer(delay, taskPerformer);
                     timer.start();
                 } else {
-                    JOptionPane.showMessageDialog(urRobotIp, "请检查ip地址的正确性", "提示", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(urRobotIp, "请检查ip地址的正确性(sure)", "提示", JOptionPane.INFORMATION_MESSAGE);
                 }
             }
         });
