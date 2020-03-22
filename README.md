@@ -15,3 +15,5 @@
 6.项目在存储数据上还可以进行相关优化 ，例如可以使用对象链接池的方式获取；
 
 7.项目实现了modbus tcp 以及tcp/ip的client方式进行数据的收发；可通过modbus tcp与第三方设备如PLC ,手臂等控制端设备进行通讯；
+
+8.可通过该套代码实现与Seer Robotics的标准Modbus Tcp/Tcp IP协议通讯（mosbus tcp实现了seerRobotics定义的float数据的读写）
