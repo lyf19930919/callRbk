@@ -7,18 +7,22 @@ import com.serotonin.modbus4j.exception.ModbusInitException;
 import com.serotonin.modbus4j.exception.ModbusTransportException;
 import com.serotonin.modbus4j.ip.IpParameters;
 import com.serotonin.modbus4j.msg.*;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
+import static util.TrimUtil.byteArrayToHexString;
+
 /**
  * modbus4j工具类，提供modbus对于数据的读写，包括读取线圈（可读写）的状态（read coils 01），读取开关量的状态（read Discrete inputs 02）
  * 读取保持寄存器（可读写）状态（read Holding Registers 03），读取输入寄存器状态（read Input Resister 04）；以及写入单个开关量数据(write single coil 05)
  * 批量写入开关量数据（write multiple coils 15)，写单个保持寄存器（write Single Register 06），批量写入保持寄存器（write Multiple Holding Register 16）
+ * 注意：modbus4j采用的是short数据以匹配modbus的寄存器值，所以如果需要在显示的时候时候需要在modbus测试工具中采用有符号显示
  */
 public class Modbus4jUtil {
-    private Logger logger = LoggerFactory.getLogger(Modbus4jUtil.class);
+    private static Logger logger = LoggerFactory.getLogger(Modbus4jUtil.class);
     /**
      * 工厂
      */
@@ -68,7 +72,7 @@ public class Modbus4jUtil {
      */
     private boolean[] readCoilStatus(int slaveID, int offset, int len)
             throws ModbusTransportException, ErrorResponseException, ModbusInitException {
-        verificatAddressAndLength(slaveID, offset, len);
+        verifyAddressAndLength(slaveID, offset, len);
         // 01 Coil Status
         ModbusMaster modbusMaster = getModbusTCPMaster();
         ReadCoilsRequest readCoilsRequest = new ReadCoilsRequest(slaveID, offset, len);
@@ -96,7 +100,7 @@ public class Modbus4jUtil {
      */
     private boolean[] readInputStatus(int slaveID, int offset, int len)
             throws ModbusTransportException, ErrorResponseException, ModbusInitException {
-        verificatAddressAndLength(slaveID, offset, len);
+        verifyAddressAndLength(slaveID, offset, len);
         // 02 Input Status
         ModbusMaster modbusMaster = getModbusTCPMaster();
         ReadDiscreteInputsRequest readDiscreteInputsRequest = new ReadDiscreteInputsRequest(slaveID, offset, len);
@@ -125,7 +129,7 @@ public class Modbus4jUtil {
      */
     private short[] readHoldingRegister(int slaveID, int offset, int len)
             throws ModbusTransportException, ErrorResponseException, ModbusInitException {
-        verificatAddressAndLength(slaveID, offset, len);
+        verifyAddressAndLength(slaveID, offset, len);
         // 03 Holding Register类型数据读取
         ModbusMaster modbusMaster = getModbusTCPMaster();
         ReadHoldingRegistersRequest readHoldingRegistersRequest = new ReadHoldingRegistersRequest(slaveID, offset, len);
@@ -154,7 +158,7 @@ public class Modbus4jUtil {
      */
     private short[] readInputRegisters(int slaveID, int offset, int len)
             throws ModbusTransportException, ErrorResponseException, ModbusInitException {
-        verificatAddressAndLength(slaveID, offset, len);
+        verifyAddressAndLength(slaveID, offset, len);
         // 04 Input Registers类型数据读取
         ModbusMaster modbusMaster = getModbusTCPMaster();
         ReadInputRegistersRequest readInputRegistersRequest = new ReadInputRegistersRequest(slaveID, offset, len);
@@ -183,7 +187,7 @@ public class Modbus4jUtil {
     private Boolean writeSingleCoil(int slaveID, int offset, Boolean writeValue)
             throws ModbusTransportException, ModbusInitException {
         Boolean single = false;
-        verificatAddressAndLength(slaveID, offset, 1);
+        verifyAddressAndLength(slaveID, offset, 1);
         ModbusMaster modbusMaster = getModbusTCPMaster();
         WriteCoilRequest writeCoilRequest = new WriteCoilRequest(slaveID, offset, writeValue);
         WriteCoilResponse writeCoilResponse = (WriteCoilResponse) modbusMaster.send(writeCoilRequest);
@@ -208,7 +212,7 @@ public class Modbus4jUtil {
     private Boolean writeSingleRegister(int slaveID, int offset, int registerValue)
             throws ModbusTransportException, ModbusInitException {
         Boolean single = false;
-        verificatAddressAndLength(slaveID, offset, 1);
+        verifyAddressAndLength(slaveID, offset, 1);
         ModbusMaster modbusMaster = getModbusTCPMaster();
         WriteRegisterRequest request = new WriteRegisterRequest(slaveID, offset, registerValue);
         WriteRegisterResponse response = (WriteRegisterResponse) modbusMaster.send(request);
@@ -233,7 +237,7 @@ public class Modbus4jUtil {
     private Boolean writeMultipleCoils(int slaveID, int offset, boolean[] coilsValue)
             throws ModbusTransportException, ModbusInitException {
         Boolean single = false;
-        verificatAddressAndLength(slaveID, offset, coilsValue.length);
+        verifyAddressAndLength(slaveID, offset, coilsValue.length);
         ModbusMaster modbusMaster = getModbusTCPMaster();
         WriteCoilsRequest writeCoilsRequest = new WriteCoilsRequest(slaveID, offset, coilsValue);
         WriteCoilsResponse writeCoilsResponse = (WriteCoilsResponse) modbusMaster.send(writeCoilsRequest);
@@ -246,7 +250,7 @@ public class Modbus4jUtil {
     }
 
     /**
-     * 批量写入开关量数据（write multiple registers 16)
+     * 批量写入寄存器数据（write multiple registers 16)
      *
      * @param slaveID
      * @param offset
@@ -258,7 +262,7 @@ public class Modbus4jUtil {
     private boolean writeMultipleRegisters(int slaveID, int offset, short[] registersValue)
             throws ModbusTransportException, ModbusInitException {
         boolean single = false;
-        verificatAddressAndLength(slaveID, offset, registersValue.length);
+        verifyAddressAndLength(slaveID, offset, registersValue.length);
         ModbusMaster modbusMaster = getModbusTCPMaster();
         WriteRegistersRequest writeRegistersRequest = new WriteRegistersRequest(slaveID, offset, registersValue);
         WriteRegistersResponse writeRegistersResponse = (WriteRegistersResponse) modbusMaster.send(writeRegistersRequest);
@@ -270,11 +274,55 @@ public class Modbus4jUtil {
         return single;
     }
 
-    private void verificatAddressAndLength(int slaveID, int address, int length) {
+    /**
+     * 检验地址和长度的是否满足
+     *
+     * @param slaveID
+     * @param address
+     * @param length
+     */
+    private void verifyAddressAndLength(int slaveID, int address, int length) {
         if (address < 0 || length <= 0 || slaveID < 0) {
             logger.error("address | length | slaveID is illegal");
         }
         logger.info("address & length & slaveID is legal");
+    }
+
+    /**
+     * * 将本地cpu存储的一个float数据转成2个modbus的双字节数以应对seerRobotics的float处理方式
+     * 机器人部分数据是 32 位的整数，但 Modbus 的 Holding register 或 Input register 只有16位，
+     * 所以在表示整形寄存器的时候，采用两个 Holding register （Input register）来表示一个 32 位的整数。
+     * 两个 Holding register 采用小端字节交换方式（Little Endian byte swap）排列。在其他需要表示 32 位整形数字的地方，
+     * 也采用此方法。对于 16 位的整数，则直接使用一个寄存器表示。
+     * 具体参考 https://docs.seer-robotics.com/seer_modbus/694368
+     *
+     * @param seerFloat 满足seer对于modbus的4字节定义范围的float数
+     * @param slaveID   modbus从站地址
+     * @param offset    修改modbus双寄存器的开始字节（即低字节在modbus中的开始存储地址）
+     * @return 是否成功将一个float数写入两个modbus的register的地址中
+     */
+    private boolean writeFloatToDoubleRegister(float seerFloat, int slaveID, int offset) throws ModbusInitException, ModbusTransportException {
+        byte[] seerFloatByte = TrimUtil.floatToByteArray(seerFloat);
+        byte[] lowWord = Arrays.copyOfRange(seerFloatByte, 2, 4);
+        byte[] hightWord = Arrays.copyOfRange(seerFloatByte, 0, 2);
+        short[] register = new short[2];
+        register[0] = (short)Integer.parseInt( TrimUtil.byteArrayToHexString(lowWord),16);
+        register[1] = (short)Integer.parseInt( TrimUtil.byteArrayToHexString(hightWord),16);
+        return writeMultipleRegisters(slaveID, offset, register);
+    }
+
+    /**
+     * 将modbus 中的双寄存器存储数据解析成一个浮点数类型；
+     * @param slave
+     * @param offset
+     * @return
+     */
+    private float readDoubleRegisterBeFloat(int slave,int offset) throws ModbusTransportException, ErrorResponseException, ModbusInitException {
+       short[] shorts = readInputRegisters(slave,offset,2);
+        byte[] lowBytes = TrimUtil.shortToByteArray(shorts[0]);
+        byte[] hightBytes = TrimUtil.shortToByteArray(shorts[1]);
+        byte[] newBytes = ArrayUtils.addAll(hightBytes, lowBytes);
+        return TrimUtil.byteArrayToFloat(newBytes);
     }
 
     /**
@@ -285,8 +333,11 @@ public class Modbus4jUtil {
     public static void main(String[] args) {
         try {
             Modbus4jUtil modbus4jUtil = new Modbus4jUtil("localhost");
-            short[] shorts = {(short) 100, (short) 0, (short) 0, (short) 0, (short) 0};
-            modbus4jUtil.readHoldingRegister(1,140,5);
+//            short[] shorts = {(short) 100, (short) 555, (short) 0, (short) 0, (short) 0};
+//            modbus4jUtil.writeMultipleRegisters(1, 1, shorts);shorts
+            modbus4jUtil.writeFloatToDoubleRegister(1.0f, 1, 1);
+            logger.info("float:"+modbus4jUtil.readDoubleRegisterBeFloat(1, 1));
+
         } catch (Exception e) {
             e.printStackTrace();
         }
