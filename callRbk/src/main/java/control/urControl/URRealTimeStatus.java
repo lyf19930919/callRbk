@@ -4,6 +4,7 @@ import entity.protocolRes.urRes.URRealTimeRes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.UrService.URRealTimeService;
+import util.SocketClient;
 
 import java.io.IOException;
 
@@ -22,10 +23,10 @@ import java.io.IOException;
 public class URRealTimeStatus {
    public static Logger log = LoggerFactory.getLogger(URRealTimeStatus.class);
 
-    public static URRealTimeRes getURRealTimeDate(String agvAddress) {
+    public static URRealTimeRes getURRealTimeDate(SocketClient socketClient) {
         URRealTimeRes urRealTimeRes = null;
         try {
-            urRealTimeRes = URRealTimeService.getURRealTimeDate(agvAddress);
+            urRealTimeRes = URRealTimeService.getURRealTimeDate(socketClient);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }

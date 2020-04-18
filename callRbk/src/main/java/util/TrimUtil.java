@@ -24,6 +24,11 @@ import java.util.Date;
  */
 public class TrimUtil {
     private static final Logger log = LoggerFactory.getLogger(TrimUtil.class);
+    public static String localClassName = new SecurityManager() {
+        public String getClassName() {
+            return getClassContext()[1].getName();
+        }
+    }.getClassName();
 
     /**
      * 拼接16进制字符转成2进制数组的request body内容并返回
@@ -31,140 +36,51 @@ public class TrimUtil {
      * @param operationReq 数据区对象
      * @return
      */
-    public static byte[] seerHexReq(Object operationReq) throws NoSuchFieldException, IllegalAccessException, UnsupportedEncodingException {
-        StringBuffer stringReqHex = new StringBuffer("");
-        String stringTexReq = null;
-        Field field = operationReq.getClass().getDeclaredField(SeerHeader.TYPE_NUMBER_NAME);
-        String TypeNumber = field.get(null).toString();
-        Field[] fields = operationReq.getClass().getDeclaredFields();
-        field.setAccessible(true);
-        /*利用reflect中的属性个数判断是否有json的数据化区
-        (个数为1的时候无数据区，个数大于1的时候为有数据区)
-        * */
-        stringReqHex = stringReqHex.append(SeerHeader.MESSAGE_HEAD).
-                append(SeerHeader.PROTOCOL_VERSION).append(SeerHeader.SERIAL_NUMBER);
-        if (ObjectUtil.isNotNull(operationReq) && fields.length > 1) {
-            log.info("have json dataEarth");
-//            封装数据长度到请求报文中
-            stringTexReq = JSONObject.toJSONString(operationReq);
-            log.info("request dataEar is " + stringTexReq);
-            stringReqHex.append(toHexDataLength(stringTexReq.getBytes().length));
-            log.info("HexDataLength is " + (JSONObject.toJSONString(operationReq)).getBytes().length + " after HexDataLength is   " + stringReqHex.toString());
-//            封装报文编号到数据头当中
-            stringReqHex.append(TypeNumber);
-//           封装保留数据区
-            stringReqHex.append(SeerHeader.RESERVED_DATA_AREA);
-//            封装json序列化后的数据区
-            log.info("request dataEar jsonToHEX is " + stringToHexStr(stringTexReq));
-            stringReqHex.append(stringToHexStr(stringTexReq));
-        } else if (fields.length == 1) {
-            log.info("no json dataEar");
-//        无json数据区长度
-            stringReqHex.append(SeerHeader.NO_DATA_LENGTH);
-            stringReqHex.append(TypeNumber);
-//        封装保留数据区
-            stringReqHex.append(SeerHeader.RESERVED_DATA_AREA);
-        }
-        return hexStringToByteArray(stringReqHex.toString());
-    }
-
-    /**
-     * 数据区是对象数组的情况
-     *
-     * @param operationReq
-     * @return
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
-     * @throws UnsupportedEncodingException
-     */
-    public static byte[] seerHexReqWithList(Object[] operationReq) throws NoSuchFieldException, IllegalAccessException, UnsupportedEncodingException {
-        StringBuffer stringReqHex = new StringBuffer("");
-        String stringTexReq = null;
-        Field field = operationReq[0].getClass().getDeclaredField(SeerHeader.TYPE_NUMBER_NAME);
-        String TypeNumber = field.get(null).toString();
-        Field[] fields = operationReq[0].getClass().getDeclaredFields();
-        field.setAccessible(true);
-        /*利用reflect中的属性个数判断是否有json的数据化区
-        (个数为1的时候无数据区，个数大于1的时候为有数据区)
-        * */
-        stringReqHex = stringReqHex.append(SeerHeader.MESSAGE_HEAD).
-                append(SeerHeader.PROTOCOL_VERSION).append(SeerHeader.SERIAL_NUMBER);
-        if (ObjectUtil.isNotNull(operationReq[0]) && fields.length > 1) {
-            log.info("have json dataEarth");
-//            封装数据长度到请求报文中
-            stringTexReq = JSONObject.toJSONString(operationReq);
-            log.info("request dataEar(with Arrays) is " + stringTexReq);
-            stringReqHex.append(toHexDataLength(stringTexReq.getBytes().length));
-            log.info("HexDataLength is " + (JSONObject.toJSONString(operationReq)).getBytes().length + " after HexDataLength is   " + stringReqHex.toString());
-//            封装报文编号到数据头当中
-            stringReqHex.append(TypeNumber);
-//           封装保留数据区
-            stringReqHex.append(SeerHeader.RESERVED_DATA_AREA);
-//            封装json序列化后的数据区
-            log.info("request dataEar jsonToHEX is " + stringToHexStr(stringTexReq));
-            stringReqHex.append(stringToHexStr(stringTexReq));
-        } else if (fields.length == 1) {
-            log.info("no json(with Arrays) dataEar");
-//        无json数据区长度
-            stringReqHex.append(SeerHeader.NO_DATA_LENGTH);
-            stringReqHex.append(TypeNumber);
-//        封装保留数据区
-            stringReqHex.append(SeerHeader.RESERVED_DATA_AREA);
-        }
-        return hexStringToByteArray(stringReqHex.toString());
-    }
-
-    /**
-     * 按照seer Robotics的报文格式(16进制的字节数组),本文实例按照16进制表示的字符转成16进制数组的表示方式
-     * 后面将报文请求体统一封装之后放入dataArea中
-     *
-     * @param operationReq
-     * @return
-     */
-    public static byte[] seerRoboticsFormatReqBody(Object operationReq)
-            throws NoSuchFieldException, IllegalAccessException {
+    public static byte[] seerReqInByteArray(Object operationReq) throws NoSuchFieldException,
+            IllegalAccessException, UnsupportedEncodingException, MyException {
         if (ObjectUtil.isNull(operationReq)) {
-            log.error("operationReq is null");
-            return null;
+            throw new MyException(localClassName, "operation jsonReq is null");
         }
         StringBuffer stringReqHex = new StringBuffer("");
         String stringTexReq = null;
         Field field = null;
         String TypeNumber = null;
-        Field[] fields = null;
+        Field[] fields = operationReq.getClass().getDeclaredFields();
+//        区分请求体为json数组
         if (operationReq.getClass().isArray()) {
+            log.info(localClassName + ":json requestBody is jsonArray");
             Object operationReqObj = Array.get(operationReq, 0);
             field = operationReqObj.getClass().getDeclaredField(SeerHeader.TYPE_NUMBER_NAME);
             TypeNumber = field.get(null).toString();
             fields = operationReqObj.getClass().getDeclaredFields();
-            field.setAccessible(true);
         } else {
+            log.info(localClassName + ":json requestBody is jsonObject");
             field = operationReq.getClass().getDeclaredField(SeerHeader.TYPE_NUMBER_NAME);
             TypeNumber = field.get(null).toString();
             fields = operationReq.getClass().getDeclaredFields();
-            field.setAccessible(true);
         }
-        /*利用reflect中的属性个数判断是否有json的数据化区(个数为1的时候无数据区，个数大于1的时候为有数据区)
-        * */
+        field.setAccessible(true);
+//        封装包头，协议版本和协议序列号
         stringReqHex = stringReqHex.append(SeerHeader.MESSAGE_HEAD).
                 append(SeerHeader.PROTOCOL_VERSION).append(SeerHeader.SERIAL_NUMBER);
-        if (ObjectUtil.isNotNull(fields) && fields.length > 1) {
-            log.info("have json dataArea");
-//            封装数据长度到请求报文中
+//        利用reflect中的属性个数判断是否有json的数据化区(个数为1的时候无数据区，个数大于1的时候为有数据区)
+        if (fields.length > 1) {
+//        有数据区的时候封装数据长度到请求报文中
             stringTexReq = JSONObject.toJSONString(operationReq);
-            log.info("request dataEar(with Arrays) is " + stringTexReq);
+            log.info(localClassName + ":have Json request and ObjectJsonSting is " + stringTexReq);
+            log.info(localClassName + ":json request dataLength is " + stringTexReq.getBytes().length);
             stringReqHex.append(toHexDataLength(stringTexReq.getBytes().length));
-            log.info("HexDataLength is " + (JSONObject.toJSONString(operationReq)).getBytes().length + " after HexDataLength is   " + stringReqHex.toString());
-//            封装报文编号到数据头当中
+//        封装报文编号到数据头当中
             stringReqHex.append(TypeNumber);
-//           封装保留数据区
+//        封装保留数据区
             stringReqHex.append(SeerHeader.RESERVED_DATA_AREA);
-//            封装json序列化后的数据区
-            log.info("request dataEar jsonToHEX is " + stringToHexStr(stringTexReq));
+//        封装json序列化后的数据区
+            log.info(localClassName + ":objectJsonString to HEXString show is  " + stringToHexStr(stringTexReq));
             stringReqHex.append(stringToHexStr(stringTexReq));
-        } else if (ObjectUtil.isNotNull(fields) && fields.length == 1) {
-            log.info("no json dataArea");
-//        无json数据区长度
+            log.info(localClassName + ":all matchSeerRobotics package HexString is "+stringReqHex.toString());
+        } else if (fields.length == 1) {
+            log.info(localClassName + ":no Json request");
+//        无json数据区时填充数据
             stringReqHex.append(SeerHeader.NO_DATA_LENGTH);
             stringReqHex.append(TypeNumber);
 //        封装保留数据区
@@ -215,28 +131,30 @@ public class TrimUtil {
      */
     public static String getSeerHexRes(byte[] seerHexRes) {
         byte[] couldUseBody = null;
-        log.info("seerHexRes is " + seerHexRes);
         if (ObjectUtil.isNotNull(seerHexRes)) {
             couldUseBody = Arrays.copyOfRange(seerHexRes, 16, seerHexRes.length);
-            log.info("could used hexResLength is " + couldUseBody.length);
+            log.info(localClassName+":remove seerResPackageHeader hexResLength is " + couldUseBody.length);
         }
         if (couldUseBody.length == 0) {
 //            无可解析的数据区
             return null;
         }
-        return new String(couldUseBody);
+        String resJsonString = new String(couldUseBody);
+        log.info(localClassName+":SRC Server: after Deserialization JsonString is " + resJsonString);
+        return resJsonString;
     }
+
     /**
      * 如果请求的类型编号不满足4字节需要高位补“0”字节数不满足4字节的
      * 该方法至针对于目前编号转16进制字符之后字节数为3的情况，可根据传参自行补充该方法；
      */
-    public static String toHexTypeNumber(String hexTypeNunber) {
+    public static String toHexTypeNumber(String hexTypeNumber) {
         StringBuffer typeNumber = new StringBuffer("0");
-        if (ObjectUtil.isNotNull(hexTypeNunber) && hexTypeNunber.getBytes().length == 3) {
-            return typeNumber.append(hexTypeNunber.toUpperCase()).toString();
+        if (ObjectUtil.isNotNull(hexTypeNumber) && hexTypeNumber.getBytes().length == 3) {
+            return typeNumber.append(hexTypeNumber.toUpperCase()).toString();
         }
-        log.info("hexTypeNumber is " + typeNumber);
-        return hexTypeNunber.toUpperCase().trim();
+        log.info(localClassName+"hexTypeNumber is " + typeNumber);
+        return hexTypeNumber.toUpperCase().trim();
     }
 
     /**
@@ -351,14 +269,15 @@ public class TrimUtil {
 
     /**
      * 将一个字节数组转成一个float整形数据
+     *
      * @param arr 字节数组
      * @return
      */
     public static float byteArrayToFloat(byte[] arr) {
-        int f = (0xff000000 	& (arr[0] << 24))  |
-                (0x00ff0000 	& (arr[1] << 16))  |
-                (0x0000ff00 	& (arr[2] << 8))   |
-                (0x000000ff 	&  arr[3]);
+        int f = (0xff000000 & (arr[0] << 24)) |
+                (0x00ff0000 & (arr[1] << 16)) |
+                (0x0000ff00 & (arr[2] << 8)) |
+                (0x000000ff & arr[3]);
         return Float.intBitsToFloat(f);
     }
 
@@ -406,7 +325,7 @@ public class TrimUtil {
         // 把float转换为byte[]
         int fbit = Float.floatToIntBits(doubleRegister);
         String hexString = Integer.toHexString(fbit);
-        log.info("float2 to HexString is " + byteArrayToHexString(hexStringToByteArray(hexString)));
+        log.info(localClassName+":float2 to HexString is " + byteArrayToHexString(hexStringToByteArray(hexString)));
         return hexStringToByteArray(hexString);
     }
 
@@ -420,9 +339,9 @@ public class TrimUtil {
      */
     public static byte[] byteArraysReverse(byte[] bytes) {
         if (!ObjectUtil.isNotNull(bytes) || bytes.length == 0) {
-            log.error(" Reverse bytes error because:bytes is null");
+            throw new MyException(localClassName,"Reverse bytes error because:bytes is null");
         }
-        log.info("Reverse before bytes Hex String is " + byteArrayToHexString(bytes));
+        log.info(localClassName+":Reverse before bytes Hex String is " + byteArrayToHexString(bytes));
         int length = bytes.length;
         byte[] newBytes = new byte[length];
         ArrayList<Byte> arrayList = new ArrayList<Byte>();
@@ -432,7 +351,7 @@ public class TrimUtil {
         for (int i = length; i > 0; i--) {
             newBytes[length - i] = arrayList.get(i - 1);
         }
-        log.info("Reverse after newBytes Hex String is " + byteArrayToHexString(newBytes));
+        log.info(localClassName+":Reverse after newBytes Hex String is " + byteArrayToHexString(newBytes));
         return newBytes;
     }
 
@@ -445,13 +364,13 @@ public class TrimUtil {
     public static String doubleToTime(double time) {
 //        byte[] tb = hexStringToByteArray("105839B4E8E8CE40");
 //        Double d = bytesToDouble(tb);
-        log.info("UR double Time is " + time);
+        log.info(localClassName+":UR double Time is " + time);
         Double d = time;
         Calendar base = Calendar.getInstance();
         SimpleDateFormat outFormat = new SimpleDateFormat("HH:mm:ss");
         //Delphi的日期类型从1899-12-30开始
         Date date = new Date(d.longValue() * 1000);
-        log.info("UR now Date is " + outFormat.format(date));
+        log.info(localClassName+":UR now Date is " + outFormat.format(date));
         return outFormat.format(date);
     }
 
@@ -463,14 +382,14 @@ public class TrimUtil {
      */
     public static String[] radToAngle(double[] rad) {
         if (!ObjectUtil.isNotNull(rad) || rad.length == 0) {
-            log.error(" Reverse bytes error because:bytes is null");
+            log.error(localClassName+":Reverse bytes error because:bytes is null");
         }
         String[] sixAngle = new String[rad.length];
         DecimalFormat df = new DecimalFormat("#0.000");
         for (int i = 0; i < rad.length; i++) {
             double angle = Math.toDegrees(rad[i]);
             sixAngle[i] = df.format(angle);
-            log.info("joint " + i + "angle is " + sixAngle[i]);
+            log.info(localClassName+":joint " + i + "angle is " + sixAngle[i]);
         }
         return sixAngle;
     }
@@ -504,24 +423,5 @@ public class TrimUtil {
         }
         return result;
     }
-
-    public static void main(String[] args) {
-        float f = 0.2f;
-        byte[] bytes = floatToByteArray(f);
-        log.info(byteArrayToHexString(bytes) + "\n");
-        byte[] lowWord = Arrays.copyOfRange(bytes, 2, 4);
-        byte[] hightWord = Arrays.copyOfRange(bytes, 0, 2);
-        try {
-            throw new MyException("500", "s");
-        } catch (MyException e) {
-            e.printStackTrace();
-        }
-        System.out.println("ss ---");
-        log.info("lower Word is " + byteArrayToHexString(lowWord) + "\n");
-        log.info("Hight Word is " + byteArrayToHexString(hightWord) + "\n");
-        log.info("lower Word  int is " + (short) Integer.parseInt(byteArrayToHexString(lowWord), 16) + "\n");
-
-    }
-
 }
 

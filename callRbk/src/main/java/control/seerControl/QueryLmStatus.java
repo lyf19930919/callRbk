@@ -2,21 +2,27 @@ package control.seerControl;
 
 import entity.protocolReq.seerReq.seerReq.QueryLocationGuideReq;
 import entity.protocolRes.seerRes.QueryLocationGuideRes;
+import exception.MyException;
 import service.seerService.LocationMarkStatusServer;
 import util.ObjectUtil;
+import util.SocketClient;
 
 import java.io.IOException;
 
 public class QueryLmStatus {
-    public static QueryLocationGuideRes queryLMStatusControl(String agvAddress, QueryLocationGuideReq queryLocationGuideReq) {
-      /*  String AGVip = "192.168.1.68";
-        QueryLocationGuideReq queryLocationGuideReq = new QueryLocationGuideReq(true);*/
+    public static String localClassName = new SecurityManager() {
+        public String getClassName() {
+            return getClassContext()[1].getName();
+        }
+    }.getClassName();
+
+    public static QueryLocationGuideRes queryLMStatusControl(SocketClient socketClient, QueryLocationGuideReq queryLocationGuideReq) {
         QueryLocationGuideRes result = null;
         try {
-            if(ObjectUtil.isNull(queryLocationGuideReq)){
-                return result;
+            if (ObjectUtil.isNull(queryLocationGuideReq) || ObjectUtil.isNull(socketClient)) {
+                throw new MyException(localClassName, "seer Req or SocketClient is null");
             }
-            result = LocationMarkStatusServer.queryLocationMarkStatus(agvAddress, queryLocationGuideReq);
+            result = LocationMarkStatusServer.queryLocationMarkStatus(socketClient, queryLocationGuideReq);
         } catch (NoSuchFieldException | IllegalAccessException | IOException | InterruptedException e) {
             e.printStackTrace();
         }

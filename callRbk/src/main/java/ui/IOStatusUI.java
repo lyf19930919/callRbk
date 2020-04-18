@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.SocketClient;
+import util.SocketPort;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -29,7 +31,7 @@ public class IOStatusUI extends JFrame {
     private JButton di3;
     private JButton do14;
     private JButton do15;
-
+    SocketClient socketClient;
 
     public IOStatusUI(String agvAddress) {
         this.agvAddress = agvAddress;
@@ -85,6 +87,8 @@ public class IOStatusUI extends JFrame {
         do15.setBounds(580, 280, 66, 30);
         do15.setFocusPainted(false);
         contentPane1.add(do15);
+        socketClient = new SocketClient(agvAddress, SocketPort.CONTROL_PROTOCOL);
+        socketClient.GetConnect();
 
         this.addWindowFocusListener(new WindowFocusListener() {
             @Override
@@ -94,9 +98,9 @@ public class IOStatusUI extends JFrame {
                     public void actionPerformed(ActionEvent evt) {
                         timer.setDelay(100);
                         QueryIOStatusReq queryIOStatusReq = new QueryIOStatusReq();
-                        QueryIOStatusRes queryIOStatusRes = QueryIOstatus.queryIOStatusControl(getAgvAddress(), queryIOStatusReq);
+                        QueryIOStatusRes queryIOStatusRes = QueryIOstatus.queryIOStatusControl(socketClient, queryIOStatusReq);
                         log.info("do2：" + queryIOStatusRes.getDO().get(2) + " do3: " + queryIOStatusRes.getDO().get(3));
-                        if (queryIOStatusRes.getDO().get(14)) {
+                       /* if (queryIOStatusRes.getDO().get(14)) {
                             do14.setBackground(Color.GREEN);
                         } else {
                             do14.setBackground(Color.RED);
@@ -110,7 +114,7 @@ public class IOStatusUI extends JFrame {
                             di12.setBackground(Color.GREEN);
                         } else {
                             di12.setBackground(Color.RED);
-                        }
+                        }*/
                     }
                 };
                 timer = new Timer(delay, taskPerformer);

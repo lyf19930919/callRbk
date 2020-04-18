@@ -10,11 +10,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class QueryIOStatusRes {
-//    DI的状态
-    private List<Boolean> DI;
-//    DI是否可用（true是可用，反之无效）
-    private List<Boolean> DI_valid;
-//    DO的状态
-    private List<Boolean> DO;
+    //    di状态
+    private List<QueryIOStatusDI> DI;
+    //    do状态
+    private List<QueryIOStatusDO> DO;
+    //    响应码
+    public Integer ret_code;
 
 }

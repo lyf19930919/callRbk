@@ -18,7 +18,7 @@ public class MainTest {
         BatchSetDoReq setDoEntity2 = new BatchSetDoReq(2, false);
         BatchSetDoReq setDoEntity3 = new BatchSetDoReq(3, false);
         BatchSetDoReq[] batchSetDos = new BatchSetDoReq[]{setDoEntity2, setDoEntity3};
-        BatchSetDo.batchSetDoControl("", null);//设置do状态给UR手臂动作
+        BatchSetDo.batchSetDoControl(null, null);//设置do状态给UR手臂动作
     }
 
 }

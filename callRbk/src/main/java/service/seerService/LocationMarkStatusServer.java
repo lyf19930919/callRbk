@@ -11,12 +11,19 @@ import util.TrimUtil;
 
 import java.io.IOException;
 
+/**
+ *
+ */
 public class LocationMarkStatusServer {
     public static final Logger log = LoggerFactory.getLogger(LocationMarkStatusServer.class);
-
+    public static String localClassName = new SecurityManager() {
+        public String getClassName() {
+            return getClassContext()[1].getName();
+        }
+    }.getClassName();
     /**
      *
-     * @param ip
+     * @param socketClient
      * @param queryLocationGuideReq
      * @return 返回导航状态是4的时候代表导航完成
      * @throws NoSuchFieldException
@@ -24,21 +31,21 @@ public class LocationMarkStatusServer {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static QueryLocationGuideRes queryLocationMarkStatus(String ip, QueryLocationGuideReq queryLocationGuideReq) throws NoSuchFieldException, IllegalAccessException, IOException, InterruptedException {
-        byte[] hexQueryLmStatus = TrimUtil.seerHexReq(queryLocationGuideReq);
-        log.info("hexLocationReq is " + hexQueryLmStatus);
-        SocketClient socketClient = new SocketClient(hexQueryLmStatus, ip, SocketPort.STATUS_PROTOCOL);
+    public static QueryLocationGuideRes queryLocationMarkStatus( SocketClient socketClient, QueryLocationGuideReq queryLocationGuideReq) throws NoSuchFieldException, IllegalAccessException, IOException, InterruptedException {
+        byte[] hexQueryLmStatus = TrimUtil.seerReqInByteArray(queryLocationGuideReq);
+        socketClient.setReqMessage(hexQueryLmStatus);
         socketClient.GetConnect();
+        log.info(localClassName+":hexLocationReq is " + hexQueryLmStatus);
         Thread.sleep(220);
-        log.info("socket connect status is " + socketClient.getIsDone());
+        log.info(localClassName+":socket connect status is " + socketClient.getIsDone());
         if (socketClient.getIsDone()) {
-            socketClient.sendSocketMessage();
+            socketClient.getSocketLongConnHaveReq();
         }
         byte[] seerRes = socketClient.getResMessage();
-        log.info("seerRes length is " + seerRes.length);
+        log.info(localClassName+":seerRes length is " + seerRes.length);
         QueryLocationGuideRes querylocationMarkRes = JSONObject.parseObject
                 (TrimUtil.getSeerHexRes(seerRes), QueryLocationGuideRes.class);
-        log.info("querylocationMarkRes ret_code is "+querylocationMarkRes.task_status);
+        log.info(localClassName+":queryLocationMarkRes ret_code is "+querylocationMarkRes.task_status);
         return querylocationMarkRes;
     }
 }

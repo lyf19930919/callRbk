@@ -1,24 +1,26 @@
 package ui;
 
 import control.seerControl.QueryIOstatus;
+import control.urControl.URDashBoardQS;
 import control.urControl.URRealTimeStatus;
 import entity.protocolReq.seerReq.seerReq.QueryIOStatusReq;
 import entity.protocolRes.seerRes.QueryIOStatusRes;
 import entity.protocolRes.urRes.URRealTimeRes;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.SocketClient;
-import util.SocketPort;
-import util.SocketWord;
-import util.StringMatch;
+import util.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
+import java.net.Socket;
 import java.sql.Time;
 
 /**
@@ -41,7 +43,9 @@ public class URStatusUI extends JFrame {
     private JTextField urRobotIp;
     private JButton sure;
     private Timer timer;
-    private final SocketClient socketClient = new SocketClient();
+    private SocketClient URDashBoard;
+    private SocketClient URRealTime;
+    private SocketClient URSpeedControl;
 
     public URStatusUI() {
         int width = Toolkit.getDefaultToolkit().getScreenSize().width;
@@ -96,6 +100,13 @@ public class URStatusUI extends JFrame {
         urTime.setForeground(Color.green);
         urTime.setBounds(350, 80, 220, 50);
         contentPane1.add(urTime);
+
+        JLabel urSpeedContorl = new JLabel("UR速度控制");
+        urSpeedContorl.setFont(f1);
+        urSpeedContorl.setForeground(Color.green);
+        urSpeedContorl.setBounds(350, 250, 220, 50);
+        contentPane1.add(urSpeedContorl);
+
 
         JLabel urControl = new JLabel("URQuickStart");
         urControl.setFont(f1);
@@ -162,79 +173,151 @@ public class URStatusUI extends JFrame {
         urNowTime.setBounds(398, 180, 90, 38);
         contentPane1.add(urNowTime);
 
+
         JButton startUR = new JButton("startUR");//       ur程序启动按钮
         startUR.setFocusPainted(false);//设置按钮文字无边框
         startUR.setBounds(630, 190, 80, 26);
         startUR.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                byte[] quickStartUr = SocketWord.START_UR.getBytes();
-                SocketClient socketClient = new SocketClient(quickStartUr, urRobotIp.getText(), SocketPort.UR_QUICKSTART29999_PORT);
-                socketClient.GetConnect();
-                log.info("启动socket链接状态" + socketClient.getIsDone());
+                URDashBoard = new SocketClient(urRobotIp.getText(), SocketPort.UR_QUICKSTART29999_PORT);
+                URDashBoard.GetConnect();
                 if (!StringMatch.matchIp4Address(urRobotIp.getText(), "([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}")
-                        || !socketClient.getIsDone()) {
+                        || !URDashBoard.getIsDone()) {
                     JOptionPane.showMessageDialog(urRobotIp, "请检查ip地址（start）", "提示", JOptionPane.INFORMATION_MESSAGE);
                 }
-                try {
-                    socketClient.sendLongSocketMessage();
-                    Thread.sleep(100);
-                    socketClient.sendLongSocketMessage();
-                    log.info(new String(socketClient.getResMessage()));
-                } catch (IOException | InterruptedException e1) {
-                    e1.printStackTrace();
+                URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.HEART_BEAT);
+                while (true){
+                    URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.START_UR);
+                    String result =  URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.RUNNING_STATUS_UR).getSocketWord();
+                    if(result.contains(SocketWord.RESPONSE_RUNNING_TRUE)){
+                        break;
+                    }
                 }
             }
         });
         contentPane1.add(startUR);
 
-        JButton pauseUR = new JButton("pauseUR");//       ur程序启动按钮
+        JButton pauseUR = new JButton("pauseUR");//       ur程序暂停按钮
         pauseUR.setFocusPainted(false);//设置按钮文字无边框
         pauseUR.setBounds(628, 250, 85, 26);
         pauseUR.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                byte[] pauseUr = SocketWord.PAUSE_UR.getBytes();
-                SocketClient socketClient = new SocketClient(pauseUr, urRobotIp.getText(), SocketPort.UR_QUICKSTART29999_PORT);
-                socketClient.GetConnect();
-                log.info("启动socket链接状态" + socketClient.getIsDone());
+                URDashBoard = new SocketClient(urRobotIp.getText(), SocketPort.UR_QUICKSTART29999_PORT);
+                URDashBoard.GetConnect();
                 if (!StringMatch.matchIp4Address(urRobotIp.getText(), "([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}")
-                        || !socketClient.getIsDone()) {
+                        || !URDashBoard.getIsDone()) {
                     JOptionPane.showMessageDialog(urRobotIp, "请检查ip地址（pause）", "提示", JOptionPane.INFORMATION_MESSAGE);
                 }
-                try {
-                    socketClient.sendLongSocketMessage();
-                    Thread.sleep(100);
-                    socketClient.sendLongSocketMessage();
-                    log.info(new String(socketClient.getResMessage()));
-                } catch (IOException | InterruptedException e1) {
-                    e1.printStackTrace();
+                URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.HEART_BEAT);
+                while (true){
+                    URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.PAUSE_UR);
+                    String result =  URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.RUNNING_STATUS_UR).getSocketWord();
+                    if(result.contains(SocketWord.RESPONSE_RUNNING_FALSE)){
+                        break;
+                    }
                 }
+
             }
         });
         contentPane1.add(pauseUR);
 
-        sure = new
+        JButton powerON = new JButton("powerON");//       ur本体上电按钮
+        powerON.setFocusPainted(false);//设置按钮文字无边框
+        powerON.setBounds(622, 310, 99, 26);
+        powerON.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                URDashBoard = new SocketClient(urRobotIp.getText(), SocketPort.UR_QUICKSTART29999_PORT);
+                URDashBoard.GetConnect();
+                if (!StringMatch.matchIp4Address(urRobotIp.getText(), "([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}")
+                        || !URDashBoard.getIsDone()) {
+                    JOptionPane.showMessageDialog(urRobotIp, "请检查ip地址（pause）", "提示", JOptionPane.INFORMATION_MESSAGE);
+                }
 
-                JButton("确定");//       确定按钮
+                URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.CLOSE_POPUP_UR);
+                String result = URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.BREAK_RELEASE_UR).getSocketWord();
+                while (result.contains(SocketWord.POWER_ON_TURE)) {
+                    result = URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.POWER_ON_UR).getSocketWord();
+                }
+                while (!result.contains(SocketWord.RESPONSE_RUNNING_TRUE)) {
+                    URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.RUNNING_STATUS_UR);
+                    result = URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.START_UR).getSocketWord();
+                }
+            }
+        });
+        contentPane1.add(powerON);
+
+        JButton powerOFF = new JButton("powerOFF");//       ur本体断电按钮
+        powerOFF.setFocusPainted(false);//设置按钮文字无边框
+        powerOFF.setBounds(622, 370, 99, 26);
+        URDashBoard = new SocketClient(urRobotIp.getText(), SocketPort.UR_QUICKSTART29999_PORT);
+        URDashBoard.GetConnect();
+        powerOFF.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!StringMatch.matchIp4Address(urRobotIp.getText(), "([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}")) {
+                    JOptionPane.showMessageDialog(urRobotIp, "请检查ip地址（pause）", "提示", JOptionPane.INFORMATION_MESSAGE);
+                }
+                URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.PAUSE_UR);
+                URDashBoardQS.getURDashBoardQuickStart(URDashBoard, SocketWord.POWER_OFF_UR);
+            }
+        });
+        contentPane1.add(powerOFF);
+
+
+        final JButton cancle = new JButton("取消");//       断开socket连接
+        cancle.setFocusPainted(false);//设置按钮文字无边框
+        cancle.setBounds(680, 30, 60, 26);
+        cancle.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (ObjectUtil.isNull(URRealTime)) {
+                    JOptionPane.showMessageDialog(contentPane1, "socket未连接或者连接错误", "提示", JOptionPane.INFORMATION_MESSAGE);
+                }
+                timer.stop();
+                try {
+                    URRealTime.closeSocketConnStatus();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+        contentPane1.add(cancle);
+
+        sure = new JButton("确定");//       开启socket(realTime)按钮链接
         sure.setFocusPainted(false);//设置按钮文字无边框
         sure.setBounds(600, 30, 60, 26);
         sure.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                URRealTime = new SocketClient(urRobotIp.getText(), SocketPort.UR_REALTIME30003_PORT);
+                URRealTime.GetConnect();
                 int delay = 100;
-                if (!socketClient.getIsDone()) {
-                    socketClient.setIp(urRobotIp.getText());
-                    socketClient.setPort(SocketPort.UR_REALTIME30003_PORT);
-                }
-                socketClient.GetConnect();
-                log.info("connection to ur(30003) status is " + socketClient.getIsDone());
+                log.info("connection to ur(30003) status is " + URRealTime.getIsDone());
+
                 if (StringMatch.matchIp4Address(urRobotIp.getText(), "([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}")
-                        && socketClient.getIsDone()) {
+                        && URRealTime.getIsDone() && !cancle.isSelected()) {
                     ActionListener taskPerformer = new ActionListener() {
                         public void actionPerformed(ActionEvent evt) {
-                            timer.setDelay(200);  //200ms刷新一次参数
-                            URRealTimeRes urRealTimeRes = URRealTimeStatus.getURRealTimeDate(urRobotIp.getText()); //此处为了方便使用了new来创建对象，可以自己更新成对象链接池来优化内存存储
+                            timer.setDelay(500);  //500ms刷新一次参数
+                            int reConnTime = 0;
+                            URRealTime = new SocketClient(urRobotIp.getText(), SocketPort.UR_REALTIME30003_PORT);
+                            URRealTimeRes urRealTimeRes = URRealTimeStatus.getURRealTimeDate(URRealTime);
+                            while (!URRealTime.getIsDone()) {
+                                URRealTime = new SocketClient(urRobotIp.getText(), SocketPort.UR_REALTIME30003_PORT);
+                                URRealTime.GetConnect();
+                                reConnTime = ++reConnTime;
+                                urRealTimeRes = URRealTimeStatus.getURRealTimeDate(URRealTime);
+                                if (reConnTime > 5) {
+                                    JOptionPane.showMessageDialog(urRobotIp, "无法重新连接至UR DashBoard Server " + " time: "
+                                            + reConnTime, "提示", JOptionPane.INFORMATION_MESSAGE);
+                                    break;
+                                }
+                            }
+                            log.info("URRealTime Socket is " + URRealTime.getSocket()
+                                    + " URRealTimeRes is" + urRealTimeRes.toString());
                             baseAngle.setText(urRealTimeRes.getJointActual()[0]);
                             shoulderAngle.setText(urRealTimeRes.getJointActual()[1]);
                             elbowAngle.setText(urRealTimeRes.getJointActual()[2]);
@@ -249,9 +332,35 @@ public class URStatusUI extends JFrame {
                 } else {
                     JOptionPane.showMessageDialog(urRobotIp, "请检查ip地址的正确性(sure)", "提示", JOptionPane.INFORMATION_MESSAGE);
                 }
+                try {
+                    URRealTime.closeSocketConnStatus();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         });
         contentPane1.add(sure);
+
+        final JSlider slider = new JSlider(0, 100, 100);
+        slider.setBounds(350, 300, 220, 50);
+        slider.setSnapToTicks(false);
+        // 添加刻度改变监听器
+        slider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                try {
+                    URSpeedControl = new SocketClient(urRobotIp.getText(), SocketPort.UR_REALTIME30002_PORT);
+                    URSpeedControl.GetConnect();
+                    URSpeedControl.setReqMessage(SocketWord.formatURSpeedControl(slider.getValue()).getBytes());
+                    URSpeedControl.getSocketLongConnHaveReq();
+                } catch (IOException | InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+        });
+        contentPane1.setVisible(true);
+        contentPane1.add(slider);
     }
 
     public static void main(String[] args) {
