@@ -1,5 +1,13 @@
 import control.seerControl.BatchSetDo;
-import entity.protocolReq.seerReq.seerReq.BatchSetDoReq;
+import entity.protocolReq.seerReq.BatchSetDoReq;
+import threadOperation.LocationDoInCycleOperation;
+import threadOperation.LocationStatusInCycle;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @ProjectName: callRbk$
@@ -14,11 +22,17 @@ import entity.protocolReq.seerReq.seerReq.BatchSetDoReq;
  * @Version: 1.0
  */
 public class MainTest {
+
+
     public static void main(String[] args) {
-        BatchSetDoReq setDoEntity2 = new BatchSetDoReq(2, false);
-        BatchSetDoReq setDoEntity3 = new BatchSetDoReq(3, false);
-        BatchSetDoReq[] batchSetDos = new BatchSetDoReq[]{setDoEntity2, setDoEntity3};
-        BatchSetDo.batchSetDoControl(null, null);//设置do状态给UR手臂动作
+        /**使用Executors工具快速构建对象*/
+        ScheduledExecutorService scheduledExecutorService =
+                Executors.newSingleThreadScheduledExecutor();
+        System.out.println("3秒后开始执行计划线程池服务..." + new Date());
+        /**每间隔4秒执行一次任务*/
+        scheduledExecutorService.scheduleAtFixedRate(new LocationDoInCycleOperation(),
+                3, 4, TimeUnit.SECONDS);
     }
+
 
 }

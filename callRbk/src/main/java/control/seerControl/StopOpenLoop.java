@@ -1,6 +1,6 @@
 package control.seerControl;
 
-import entity.protocolReq.seerReq.seerReq.StopOpenLoopReq;
+import entity.protocolReq.seerReq.StopOpenLoopReq;
 import entity.protocolRes.seerRes.GeneralRes;
 import exception.MyException;
 import service.seerService.StopOpenLoopService;

@@ -1,12 +1,11 @@
 package service.seerService;
 
 import com.alibaba.fastjson.JSONObject;
-import entity.protocolReq.seerReq.seerReq.StartOpenLoopReq;
+import entity.protocolReq.seerReq.StartOpenLoopReq;
 import entity.protocolRes.seerRes.GeneralRes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ObjectUtil;
-import util.SocketPort;
 import util.SocketClient;
 import util.TrimUtil;
 

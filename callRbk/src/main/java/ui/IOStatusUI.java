@@ -1,7 +1,7 @@
 package ui;
 
 import control.seerControl.QueryIOstatus;
-import entity.protocolReq.seerReq.seerReq.QueryIOStatusReq;
+import entity.protocolReq.seerReq.QueryIOStatusReq;
 import entity.protocolRes.seerRes.QueryIOStatusRes;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,11 +1,10 @@
 package service.seerService;
 
 import com.alibaba.fastjson.JSONObject;
-import entity.protocolReq.seerReq.seerReq.QueryLocationGuideReq;
+import entity.protocolReq.seerReq.QueryLocationGuideReq;
 import entity.protocolRes.seerRes.QueryLocationGuideRes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.SocketPort;
 import util.SocketClient;
 import util.TrimUtil;
 

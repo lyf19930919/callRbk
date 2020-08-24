@@ -1,6 +1,6 @@
 package control.seerControl;
 
-import entity.protocolReq.seerReq.seerReq.QueryIOStatusReq;
+import entity.protocolReq.seerReq.QueryIOStatusReq;
 import entity.protocolRes.seerRes.QueryIOStatusRes;
 import exception.MyException;
 import service.seerService.QueryIOService;

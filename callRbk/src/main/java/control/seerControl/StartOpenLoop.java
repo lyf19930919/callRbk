@@ -1,6 +1,6 @@
 package control.seerControl;
 
-import entity.protocolReq.seerReq.seerReq.StartOpenLoopReq;
+import entity.protocolReq.seerReq.StartOpenLoopReq;
 import exception.MyException;
 import service.seerService.StartOpenLoopService;
 import util.ObjectUtil;

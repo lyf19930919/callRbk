@@ -1,5 +1,5 @@
-1.该项目基于seer robotics的单机控制协议（tcp/ip或者modbus tcp）实现的地盘控制；seer地盘控制参考如下链接：
-  https://docs.seer-robotics.com/robokit_netprotocol/663328
+1.该项目基于seer robotics的单机控制协议（tcp/ip或者modbus tcp）实现的底盘控制；seer底盘控制参考如下链接：
+https://docs.seer-group.com/
     
     1.1.实现基本的导航控制，状态查询，导航任务下发，IO状态查询，批零控制pdo状态，以及开环控制等；
 
@@ -17,3 +17,5 @@
 7.项目实现了modbus tcp 以及tcp/ip的client方式进行数据的收发；可通过modbus tcp与第三方设备如PLC ,手臂等控制端设备进行通讯；
 
 8.可通过该套代码实现与Seer Robotics的标准Modbus Tcp/Tcp IP协议通讯（mosbus tcp实现了seerRobotics定义的float数据的读写）
+
+9.添加了库位管理的矩阵操作流程；

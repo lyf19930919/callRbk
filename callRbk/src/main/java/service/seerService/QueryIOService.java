@@ -1,7 +1,7 @@
 package service.seerService;
 
 import com.alibaba.fastjson.JSONObject;
-import entity.protocolReq.seerReq.seerReq.QueryIOStatusReq;
+import entity.protocolReq.seerReq.QueryIOStatusReq;
 import entity.protocolRes.seerRes.QueryIOStatusRes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

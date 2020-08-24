@@ -1,6 +1,6 @@
 package control.seerControl;
 
-import entity.protocolReq.seerReq.seerReq.LocationMarkReq;
+import entity.protocolReq.seerReq.LocationMarkReq;
 import entity.protocolRes.seerRes.GeneralRes;
 import exception.MyException;
 import service.seerService.LocationGuideService;

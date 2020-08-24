@@ -1,14 +1,9 @@
 package ui;
 
-import control.seerControl.QueryIOstatus;
 import control.urControl.URDashBoardQS;
 import control.urControl.URRealTimeStatus;
-import entity.protocolReq.seerReq.seerReq.QueryIOStatusReq;
-import entity.protocolRes.seerRes.QueryIOStatusRes;
 import entity.protocolRes.urRes.URRealTimeRes;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.*;
@@ -20,8 +15,6 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
-import java.net.Socket;
-import java.sql.Time;
 
 /**
  * @ProjectName: callRbk$

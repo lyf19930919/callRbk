@@ -1,6 +1,6 @@
 package control.seerControl;
 
-import entity.protocolReq.seerReq.seerReq.BatchSetDoReq;
+import entity.protocolReq.seerReq.BatchSetDoReq;
 import entity.protocolRes.seerRes.GeneralRes;
 import exception.MyException;
 import service.seerService.BatchSetDOService;

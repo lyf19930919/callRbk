@@ -1,6 +1,6 @@
 package control.seerControl;
 
-import entity.protocolReq.seerReq.seerReq.QueryLocationGuideReq;
+import entity.protocolReq.seerReq.QueryLocationGuideReq;
 import entity.protocolRes.seerRes.QueryLocationGuideRes;
 import exception.MyException;
 import service.seerService.LocationMarkStatusServer;

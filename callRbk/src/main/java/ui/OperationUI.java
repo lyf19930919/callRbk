@@ -1,7 +1,7 @@
 package ui;
 
 import control.seerControl.*;
-import entity.protocolReq.seerReq.seerReq.*;
+import entity.protocolReq.seerReq.*;
 import entity.protocolRes.seerRes.GeneralRes;
 import entity.protocolRes.seerRes.QueryIOStatusRes;
 import entity.protocolRes.seerRes.QueryLocationGuideRes;

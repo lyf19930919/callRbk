@@ -1,11 +1,9 @@
 package util;
 
 import com.alibaba.fastjson.JSONObject;
-import com.sun.imageio.plugins.common.I18N;
 import exception.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.Unsafe;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
@@ -395,31 +393,17 @@ public class TrimUtil {
     }
 
     /**
-     * 检查当前jvm运行的大小端判断
+     * 检查当前jvm内存存储的大小端判断
      *
      * @return
      * @throws IllegalAccessException
      */
     public static Integer checkIsBigEndian() throws IllegalAccessException {
-        Field unsafeField = Unsafe.class.getDeclaredFields()[0];
-        unsafeField.setAccessible(true);
-        Unsafe unsafe = (Unsafe) unsafeField.get(null);
-        long a = unsafe.allocateMemory(8);
-        unsafe.putLong(a, 0x0102030405060708L);
-        byte b = unsafe.getByte(a);
-        ByteOrder byteOrder;
-        Integer result = 0;
-        switch (b) {
-            case 0x01:   //最高位是0x01的话判断的时候大端
-                byteOrder = ByteOrder.BIG_ENDIAN;
-                result = 2;
-                break;
-            case 0x08:    //最高位是0x08的话判断的时候大端
-                byteOrder = ByteOrder.LITTLE_ENDIAN;
-                result = 1;
-                break;
-            default:
-                byteOrder = null;
+        int result;
+        if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) {
+            result = 2; //最高位是0x01的话判断的时候大端
+        } else {
+            result = 1;  //最高位是0x08的话判断的时候大端
         }
         return result;
     }
