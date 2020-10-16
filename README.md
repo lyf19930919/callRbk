@@ -19,3 +19,5 @@ https://docs.seer-group.com/
 8.可通过该套代码实现与Seer Robotics的标准Modbus Tcp/Tcp IP协议通讯（mosbus tcp实现了seerRobotics定义的float数据的读写）
 
 9.添加了库位管理的矩阵操作流程；
+
+10.添加了使用文本正则将西门子的ps软件生成的urscript文本中的弧度制关节角度数据转换成角度值数据进行ur的脚本程序的转换;

@@ -1,0 +1,18 @@
+{
+  "LibraryArea1": {
+    "row": 2,
+    "column": 2,
+    "useMatrix": true,
+    "writeDOFunctionMa": "02",
+    "readDiFunctionMa": "01",
+    "diStartAddress": 0,
+    "doStartAddress": 0,
+    "modbusServerAddress": "localhost",
+    "modbusServerPort": 502,
+    "redLightAddress": 0,
+    "yellowLightAddress": 0,
+    "greenLightAddress": 0,
+    "buzzer": 0,
+    "dOSetTime": 1000
+  }
+}
